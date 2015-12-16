@@ -1,7 +1,7 @@
 import sys
 import time
 from time import strftime
-from datetime import datetime,timedelta
+from datetime import datetime, timedelta
 import logging
 from watchdog.observers import Observer
 from watchdog.events import LoggingEventHandler, FileSystemEventHandler
@@ -9,10 +9,11 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 
 browser = webdriver.Chrome()
-url="http://localhost:8001/invoice_sendmail/test.php"
+url = "http://localhost:8001/invoice_sendmail/test.php"
 browser.get(url)
 home_window = browser.current_window_handle
-last_time=datetime.now()
+last_time = datetime.now()
+
 
 class MyHandler(FileSystemEventHandler):
 
@@ -29,7 +30,8 @@ class MyHandler(FileSystemEventHandler):
             path/to/observed/file
         """
         # the file will be processed there
-        print event.src_path, event.event_type ,strftime("%Y-%m-%d %H:%M:%S", time.localtime())  # print now only for degug
+        # print now only for degug
+        print event.src_path, event.event_type, strftime("%Y-%m-%d %H:%M:%S", time.localtime())
 
     def on_any_event(self, event):
         global last_time
@@ -38,10 +40,9 @@ class MyHandler(FileSystemEventHandler):
                 self.process(event)
                 browser.switch_to_window(home_window)
                 browser.refresh()
-                last_time=datetime.now()
+                last_time = datetime.now()
             except:
                 quit()
-            
 
 
 if __name__ == "__main__":
