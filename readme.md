@@ -1,3 +1,6 @@
+#Summary
+- Auto Test is the tool for test automation. It uses Watchbog to monitor the changes you made and refresh the browser or run the command(like unit test).
+
 #Environment
 - osx / linux / windows
 
