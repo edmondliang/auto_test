@@ -75,7 +75,7 @@ def activate_event():
     filename='test.log'
     filename=os.path.join(path,filename)
     f=open(filename,'w')
-    f.write('test')
+    f.write(datetime.strftime(datetime.now(), '%Y-%m-%d %H:%M:%S'))
     f.close
 
 if __name__ == "__main__":
@@ -86,7 +86,7 @@ if __name__ == "__main__":
     try:
         while True:
             time.sleep(1)
-            if last_time + timedelta(minutes=10) < datetime.now():
+            if last_time + timedelta(minutes=120) < datetime.now():
                 activate_event()
     except KeyboardInterrupt:
         observer.stop()
