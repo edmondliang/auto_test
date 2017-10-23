@@ -2,6 +2,7 @@ import os
 import sys
 import time
 import traceback
+import signal
 from time import strftime
 from datetime import datetime,timedelta
 import logging
@@ -11,17 +12,17 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver import ActionChains
 
-browser = webdriver.Chrome()
-url="http://127.0.0.1:8080"
-refresh_ext = ('html','css','js','pyc','py')
-browser.get(url)
-home_window = browser.current_window_handle
-last_time=datetime.now()
-
 class MyHandler(FileSystemEventHandler):
 
-    def __init__(self, observer):
+    def __init__(self,observer, url='http://127.0.0.1'):
+        self.url=url
         self.observer = observer
+        
+        self.last_time = datetime.now()
+        self.browser = webdriver.Chrome()
+        self.browser.get(url)
+        self.home_window = self.browser.current_window_handle
+        self.refresh_ext = ('html','css','js','pyc','py')
 
     def process(self, event):
         """
@@ -37,26 +38,54 @@ class MyHandler(FileSystemEventHandler):
 
     def on_any_event(self, event):
         try:
-            global last_time
+            # user_input = input()
             ext = event.src_path.split('.')[-1].lower()
-            if last_time + timedelta(seconds=1) < datetime.now() and ext in refresh_ext:
+            if self.last_time + timedelta(seconds=1) < datetime.now() and ext in self.refresh_ext:
                 self.process(event)
-                # browser.switch_to_window(home_window)
-                browser.refresh()
-                last_time=datetime.now()
-                # raise Exception('test error')
+                # self.browser.switch_to_window(self.home_window)
+                self.browser.refresh()
+                self.last_time=datetime.now()
         except:
             traceback.print_exc()
+            self.browser.close()
+            self.observer.stop()
             print 'Process has been terminated.'
-            browser.close()
-            observer.stop()
-            quit()
+            
 
 
-if __name__ == "__main__":
+
+class Watcher(object):
+
+    def __init__(self, path, url):
+        self.observer = Observer()
+        self.path = path
+        self.url = url
+
+    def service_shutdown(self):
+        self.observer.stop()
+
+    def run(self):
+        event_handler = MyHandler(self.observer, self.url)
+        self.observer.schedule(event_handler, self.path, recursive=True)
+
+        try:
+            self.observer.start()
+            while self.observer.isAlive():
+                time.sleep(1)
+
+        except:
+            if self.observer.isAlive():
+                self.observer.stop()
+            traceback.print_exc()
+
+        self.observer.join()
+        
+
+if __name__ == '__main__':
     path = sys.argv[1] if len(sys.argv) > 1 else '.'
+    url="http://127.0.0.1:8080"
+    w = Watcher(path, url)
+    w.run()
 
-    observer = Observer()
-    observer.schedule(MyHandler(observer), path, recursive=True)
-    observer.start()
-    observer.join()
+
+        
