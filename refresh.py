@@ -44,7 +44,7 @@ class MyHandler(FileSystemEventHandler):
                 # browser.switch_to_window(home_window)
                 browser.refresh()
                 last_time=datetime.now()
-                raise Exception('test error')
+                # raise Exception('test error')
         except:
             traceback.print_exc()
             print 'Process has been terminated.'
