@@ -1,5 +1,7 @@
+import os
 import sys
 import time
+import traceback
 from time import strftime
 from datetime import datetime,timedelta
 import logging
@@ -10,7 +12,8 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver import ActionChains
 
 browser = webdriver.Chrome()
-url="http://localhost:5000"
+url="http://127.0.0.1:8080"
+refresh_ext = ('html','css','js','pyc','py')
 browser.get(url)
 home_window = browser.current_window_handle
 last_time=datetime.now()
@@ -33,23 +36,22 @@ class MyHandler(FileSystemEventHandler):
         print event.src_path, event.event_type ,strftime("%Y-%m-%d %H:%M:%S", time.localtime())  # print now only for degug
 
     def on_any_event(self, event):
-        global last_time
-        if last_time + timedelta(seconds=1) < datetime.now():
-            try:
+        try:
+            global last_time
+            ext = event.src_path.split('.')[-1].lower()
+            if last_time + timedelta(seconds=1) < datetime.now() and ext in refresh_ext:
                 self.process(event)
-                browser.switch_to_window(home_window)
+                # browser.switch_to_window(home_window)
                 browser.refresh()
                 last_time=datetime.now()
-            except:
-                quit()
-            
-def activate_event():
-    path=os.path.dirname(os.path.realpath(__file__))
-    filename='test.log'
-    filename=os.path.join(path,filename)
-    f=open(filename,'w')
-    f.write('test')
-    f.close
+                raise Exception('test error')
+        except:
+            traceback.print_exc()
+            print 'Process has been terminated.'
+            browser.close()
+            observer.stop()
+            quit()
+
 
 if __name__ == "__main__":
     path = sys.argv[1] if len(sys.argv) > 1 else '.'
@@ -57,12 +59,4 @@ if __name__ == "__main__":
     observer = Observer()
     observer.schedule(MyHandler(observer), path, recursive=True)
     observer.start()
-    try:
-        while True:
-            time.sleep(1)
-            if last_time + timedelta(minutes=10) < datetime.now():
-                activate_event()
-    except KeyboardInterrupt:
-        browser.close()
-        observer.stop()
     observer.join()
