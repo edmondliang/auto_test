@@ -1,10 +1,10 @@
+#!/Users/zliang/.local/share/virtualenvs/auto_test-SWKI-wCY/bin/python
 import os
 import sys
 import time
 import traceback
 import signal
-from time import strftime
-from datetime import datetime,timedelta
+from datetime import datetime, timedelta
 import logging
 from watchdog.observers import Observer
 from watchdog.events import LoggingEventHandler, FileSystemEventHandler
@@ -12,17 +12,18 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver import ActionChains
 
+
 class MyHandler(FileSystemEventHandler):
 
-    def __init__(self,observer, url='http://127.0.0.1'):
-        self.url=url
+    def __init__(self, observer, url='http://127.0.0.1'):
+        self.url = url
         self.observer = observer
-        
+
         self.last_time = datetime.now()
         self.browser = webdriver.Chrome()
         self.browser.get(url)
         self.home_window = self.browser.current_window_handle
-        self.refresh_ext = ('html','css','js','pyc','py')
+        self.refresh_ext = ('html', 'css', 'js', 'pyc', 'py')
 
     def process(self, event):
         """
@@ -34,7 +35,7 @@ class MyHandler(FileSystemEventHandler):
             path/to/observed/file
         """
         # the file will be processed there
-        print event.src_path, event.event_type ,strftime("%Y-%m-%d %H:%M:%S", time.localtime())  # print now only for degug
+        print(event.src_path, event.event_type, time.asctime(time.localtime()))  # print now only for degug
 
     def on_any_event(self, event):
         try:
@@ -44,14 +45,12 @@ class MyHandler(FileSystemEventHandler):
                 self.process(event)
                 # self.browser.switch_to_window(self.home_window)
                 self.browser.refresh()
-                self.last_time=datetime.now()
+                self.last_time = datetime.now()
         except:
             traceback.print_exc()
             self.browser.close()
             self.observer.stop()
-            print 'Process has been terminated.'
-            
-
+            print('Process has been terminated.')
 
 
 class Watcher(object):
@@ -79,13 +78,10 @@ class Watcher(object):
             traceback.print_exc()
 
         self.observer.join()
-        
+
 
 if __name__ == '__main__':
     path = sys.argv[1] if len(sys.argv) > 1 else '.'
-    url="http://127.0.0.1:8080"
+    url = "http://127.0.0.1:8080"
     w = Watcher(path, url)
     w.run()
-
-
-        
